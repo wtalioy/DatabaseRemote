@@ -1,13 +1,11 @@
 import mysql.connector
-import os
-
-pwd = os.environ.get("MYSQL_PASSWORD")
+from config import MYSQL_CONFIG
 
 cnx = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password=pwd,
-    database='test',
+    host=MYSQL_CONFIG['host'],
+    user=MYSQL_CONFIG['user'],
+    password=MYSQL_CONFIG['password'],
+    database=MYSQL_CONFIG['database'],
 )
 
 cursor = cnx.cursor()
