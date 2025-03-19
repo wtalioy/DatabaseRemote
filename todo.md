@@ -1,0 +1,7 @@
+- add Columns class
+    - add two methods for datatype and sort order to be concatenated
+    - add __str__ method to return a string representation of the columns
+    - add __repr__ method to return a string representation of the columns
+    - implement method to handle values as a tuple
+- values as a tuple
+- maybe add a Datatype class
