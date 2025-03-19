@@ -3,5 +3,6 @@
     - add __str__ method to return a string representation of the columns
     - add __repr__ method to return a string representation of the columns
     - implement method to handle values as a tuple
-- values as a tuple
 - maybe add a Datatype class
+- values as a tuple
+- SQLInterpreter (return sql string) + DBCursor (get server, database, return cursor) = Remote (command)
