@@ -1,13 +1,16 @@
 import pyodbc
-from config import DSN_CONFIG
+import os
+from dotenv import load_dotenv
 
-dsn = DSN_CONFIG['dsn']
-user = DSN_CONFIG['user']
-password = DSN_CONFIG['password']
+load_dotenv()
+dsn = os.getenv('DSN')
+user = os.getenv('DSN_USER')
+pwd = os.getenv('DSN_PWD')
+db = os.getenv('DB')
 
-connection = pyodbc.connect(f'DSN={dsn};UID={user};PWD={password};DATABASE=tinydp')
+cnx = pyodbc.connect(f'DSN={dsn};UID={user};PWD={pwd};DATABASE={db}')
 
-cursor = connection.cursor()
+cursor = cnx.cursor()
 
 query = "SHOW TABLES"
 cursor.execute(query)
