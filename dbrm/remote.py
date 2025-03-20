@@ -27,8 +27,8 @@ def transfer_csv(
     cursor = get_cursor(**kwargs)
     sql_table = SQLTable(
         cursor=cursor,
-        name=table_name,
-        data=pd.read_csv(csv_file),
+        table_name=table_name,
+        dataframe=pd.read_csv(csv_file),
         if_exists=if_exists,
     )
     sql_table.create()

@@ -30,16 +30,13 @@ class SQLTable:
         dtypes = []
         for col in self.data.columns:
             dtype = self.data[col].dtype
-            if dtype == "object" and self.data[col].notna().any():
+            dtype_name = dtype.name if hasattr(dtype, 'name') else str(dtype)
+            
+            if dtype_name == "object" and self.data[col].notna().any():
                 length = self.data[col].str.len().max()
-                if length == 0:
-                    dtype = f"{DTYPE_MAPPING['object'](255)}"
-                elif length <= 255:
-                    dtype = f"{DTYPE_MAPPING['object']}({length})"
-                else:
-                    dtype = f"{DTYPE_MAPPING['text']}"
-            else:
-                dtype = DTYPE_MAPPING[dtype]
+                if length > 255:
+                    dtype_name = "text"
+            dtype = DTYPE_MAPPING[dtype_name]
             dtypes.append(dtype)
         return dtypes
     

@@ -27,7 +27,7 @@ DTYPE_MAPPING = {
     'datetime': 'DATETIME',
     'date': 'DATE',
     # Pandas/Python string and categorical types
-    'object': 'VARCHAR',
+    'object': 'VARCHAR(255)',
     'category': 'VARCHAR(255)',
     'text': 'TEXT',
     # Additional types
