@@ -8,7 +8,7 @@ DTYPE_MAPPING = {
     'uint32': 'INTEGER',
     'uint16': 'INTEGER',
     'uint8': 'INTEGER',
-    'float64': 'FLOAT',
+    'float64': 'DOUBLE',
     'float32': 'FLOAT',
     'float16': 'FLOAT',
     # Python native types
