@@ -23,7 +23,7 @@ DTYPE_MAPPING = {
     'datetime': 'DATETIME',
     'date': 'DATE',
     # Pandas/Python string and categorical types
-    'object': 'VARCHAR(255)',
+    'object': 'VARCHAR',
     'category': 'VARCHAR(255)',
     'text': 'TEXT',
     # Additional types
@@ -59,4 +59,4 @@ def get_column_info(df) -> tuple:
 
 
 def size(obj) -> int:
-    return len(obj) if hasattr(obj, '__len__') else 0
+    return len(obj) if hasattr(obj, '__len__') and not isinstance(obj, str) else 1

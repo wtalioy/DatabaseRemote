@@ -17,8 +17,11 @@ def create_table(table_name: str, column_info: tuple) -> str:
     for col_name, dtype, length in column_info:
         if dtype not in DTYPE_MAPPING:
             raise ValueError(f"Unsupported data type: {dtype}")
-        if dtype == 'object' and length is not None:
-            column_definitions.append(f"{col_name} {DTYPE_MAPPING[dtype]}({length})")
+        if dtype == 'object':
+            if length is not None:
+                column_definitions.append(f"{col_name} {DTYPE_MAPPING[dtype]}({length})")
+            else:
+                column_definitions.append(f"{col_name} {DTYPE_MAPPING[dtype]}(255)")
         else:
             column_definitions.append(f"{col_name} {DTYPE_MAPPING[dtype]}")
     column_definitions = ', '.join(column_definitions)
@@ -40,7 +43,7 @@ def drop_table(table_name: str) -> str:
     return sql_str
 
 
-def select(column_names: str | tuple, table_names: str | tuple, conditions: str | tuple) -> str:
+def select(column_names: str | tuple, table_names: str | tuple, conditions: str | tuple = '') -> str:
     """
     Generate SQL code to select data from a table.
 
@@ -94,7 +97,7 @@ def update(table_name: str, column_names: str | tuple, values: int | tuple, cond
     """
     if size(column_names) != size(values):
         raise ValueError("column_names and values must have the same length")
-    set_clause = ', '.join(f"{col} = {val}" for col, val in zip(column_names, values))
+    set_clause = ', '.join(f"{col} = {val}" for col, val in zip(column_names, values)) if isinstance(column_names, tuple) else f"{column_names} = {values}"
     conditions = ' AND '.join(conditions) if isinstance(conditions, tuple) else conditions
     sql_str = UPDATE.format(table_name, set_clause, conditions)
     return sql_str
