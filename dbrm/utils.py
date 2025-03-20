@@ -35,7 +35,7 @@ DTYPE_MAPPING = {
 }
 
 
-def get_column_info(df) -> tuple:
+def get_column_info(df) -> list:
     """
     Get the data types and lengths of each column in a DataFrame.
 
@@ -43,7 +43,8 @@ def get_column_info(df) -> tuple:
         df (pd.DataFrame): The DataFrame to analyze.
 
     Returns:
-        Tuple: A tuple of tuples containing the column name, data type, and length.
+        list: A list of tuples containing the column name, data type, and length.
+        Example: [('column1', 'int64', None), ('column2', 'object', 100)]
     """
     column_info = []
     for col in df.columns:
@@ -55,7 +56,7 @@ def get_column_info(df) -> tuple:
                 dtype = 'text'
                 length = None
         column_info.append((col, dtype, length))
-    return tuple(column_info)
+    return column_info
 
 
 def size(obj) -> int:

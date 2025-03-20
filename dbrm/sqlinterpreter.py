@@ -1,14 +1,17 @@
 from .template import *
 from .utils import DTYPE_MAPPING, check_size, process_value
+from typing import Literal, Union, List, Tuple, Optional, Any
 
-
-def create_table(table_name: str, column_info: tuple | list) -> str:
+def create_table(
+    table_name: str, 
+    column_info: Union[Tuple, List]
+) -> str:
     """
     Generate SQL code to create a table with the specified name and columns.
 
     Args:
         table_name (str): The name of the table to create.
-        column_info (tuple | list): A tuple or list of tuples/lists, where each contains the column name, its data type and length.
+        column_info (Union[Tuple, List]): A tuple or list of tuples/lists, where each contains the column name, its data type and length.
 
     Returns:
         str: The SQL code to create the table.
@@ -29,7 +32,9 @@ def create_table(table_name: str, column_info: tuple | list) -> str:
     return sql_str
 
 
-def drop_table(table_name: str) -> str:
+def drop_table(
+    table_name: str
+) -> str:
     """
     Generate SQL code to drop a table with the specified name.
 
@@ -43,12 +48,14 @@ def drop_table(table_name: str) -> str:
     return sql_str
 
 
-def where(condition: str | tuple | list) -> str:
+def where(
+    condition: Union[str, Tuple, List]
+) -> str:
     """
     Generate SQL code for a WHERE clause.
 
     Args:
-        condition (str | tuple | list): The condition for the WHERE clause.
+        condition (Union[str, Tuple, List]): The condition for the WHERE clause.
 
     Returns:
         str: The SQL code for the WHERE clause.
@@ -60,14 +67,18 @@ def where(condition: str | tuple | list) -> str:
     return sql_str
 
 
-def select(column_name: str | tuple | list, table_name: str | tuple | list, condition: str | tuple | list = None) -> str:
+def select(
+    column_name: Union[str, Tuple, List], 
+    table_name: Union[str, Tuple, List], 
+    condition: Optional[Union[str, Tuple, List]] = None
+) -> str:
     """
     Generate SQL code to select data from a table.
 
     Args:
-        column_name (str | tuple | list): The column to select.
-        table_name (str | tuple | list): The table to select from.
-        condition (str | tuple | list): The condition for the selection.
+        column_name (Union[str, Tuple, List]): The column to select.
+        table_name (Union[str, Tuple, List]): The table to select from.
+        condition (Optional[Union[str, Tuple, List]]): The condition for the selection.
 
     Returns:
         str: The SQL code to select data from the table.
@@ -79,13 +90,17 @@ def select(column_name: str | tuple | list, table_name: str | tuple | list, cond
     return sql_str.strip()
 
 
-def insert(table_name: str, column_name: str | tuple | list, value) -> str:
+def insert(
+    table_name: str, 
+    column_name: Union[str, Tuple, List], 
+    value: Any
+) -> str:
     """
     Generate SQL code to insert data into a table.
 
     Args:
         table_name (str): The table to insert data into.
-        column_name (str | tuple | list): The column to insert data into.
+        column_name (Union[str, Tuple, List]): The column to insert data into.
         value: The value to insert.
 
     Returns:
@@ -100,15 +115,20 @@ def insert(table_name: str, column_name: str | tuple | list, value) -> str:
     return sql_str
 
 
-def update(table_name: str, column_name: str | tuple | list, value, condition: str | tuple | list = None) -> str:
+def update(
+    table_name: str, 
+    column_name: Union[str, Tuple, List], 
+    value: Any, 
+    condition: Optional[Union[str, Tuple, List]] = None
+) -> str:
     """
     Generate SQL code to update data in a table.
 
     Args:
         table_name (str): The table to update data in.
-        column_name (str | tuple | list): The column to update.
+        column_name (Union[str, Tuple, List]): The column to update.
         value: The value to update.
-        condition (str | tuple | list): The condition for the update.
+        condition (Optional[Union[str, Tuple, List]]): The condition for the update.
 
     Returns:
         str: The SQL code to update data in the table.
@@ -122,13 +142,16 @@ def update(table_name: str, column_name: str | tuple | list, value, condition: s
     return sql_str.strip()
 
 
-def delete(table_name: str, condition: str | tuple | list = None) -> str:
+def delete(
+    table_name: str, 
+    condition: Optional[Union[str, Tuple, List]] = None
+) -> str:
     """
     Generate SQL code to delete data from a table.
 
     Args:
         table_name (str): The table to delete data from.
-        condition (str | tuple | list): The condition for the deletion.
+        condition (Optional[Union[str, Tuple, List]]): The condition for the deletion.
 
     Returns:
         str: The SQL code to delete data from the table.
@@ -138,7 +161,9 @@ def delete(table_name: str, condition: str | tuple | list = None) -> str:
     return sql_str.strip()
 
 
-def like(pattern: str) -> str:
+def like(
+    pattern: str
+) -> str:
     """
     Generate SQL code for a LIKE condition.
 
@@ -152,7 +177,10 @@ def like(pattern: str) -> str:
     return sql_str
 
 
-def union(query1: str, query2: str) -> str:
+def union(
+    query1: str, 
+    query2: str
+) -> str:
     """
     Generate SQL code for a UNION operation.
 
@@ -167,7 +195,10 @@ def union(query1: str, query2: str) -> str:
     return sql_str
 
 
-def order_by(column_name: str, ascending: bool = True) -> str:
+def order_by(
+    column_name: str, 
+    ascending: bool = True
+) -> str:
     """
     Generate SQL code for an ORDER BY clause.
 
@@ -183,12 +214,14 @@ def order_by(column_name: str, ascending: bool = True) -> str:
     return sql_str
 
 
-def group_by(column_name: str | tuple | list) -> str:
+def group_by(
+    column_name: Union[str, Tuple, List]
+) -> str:
     """
     Generate SQL code for a GROUP BY clause.
 
     Args:
-        column_name (str | tuple | list): The column to group by.
+        column_name (Union[str, Tuple, List]): The column to group by.
 
     Returns:
         str: The SQL code for the GROUP BY clause.
@@ -198,21 +231,24 @@ def group_by(column_name: str | tuple | list) -> str:
     return sql_str
 
 
-def join(table1: str, table2: str, join_type: str = 'INNER', condition: str | tuple | list = None) -> str:
+def join(
+    table1: str, 
+    table2: str, 
+    join_type: Literal['INNER', 'LEFT', 'RIGHT', 'NATURAL'] = 'INNER',
+    condition: Optional[Union[str, Tuple, List]] = None
+) -> str:
     """
     Generate SQL code for a JOIN operation.
 
     Args:
         table1 (str): The first table.
         table2 (str): The second table.
-        join_type (str): The type of join (INNER, LEFT, RIGHT).
-        condition (str | tuple | list): The condition for the join.
+        join_type (Literal['INNER', 'LEFT', 'RIGHT', 'NATURAL']): The type of join (INNER, LEFT, RIGHT, NATURAL).
+        condition (Optional[Union[str, Tuple, List]]): The condition for the join.
 
     Returns:
         str: The SQL code for the JOIN operation.
     """
-    if join_type not in ['INNER', 'LEFT', 'RIGHT', 'NATURAL']:
-        raise ValueError(f"Unsupported join type: {join_type}")
     if condition is None:
         condition = ''
     else:
@@ -222,7 +258,11 @@ def join(table1: str, table2: str, join_type: str = 'INNER', condition: str | tu
     return sql_str.strip()
 
 
-def add_column(table_name: str, column_name: str, data_type: str) -> str:
+def add_column(
+    table_name: str, 
+    column_name: str, 
+    data_type: str
+) -> str:
     """
     Generate SQL code to add a column to a table.
 
@@ -240,7 +280,10 @@ def add_column(table_name: str, column_name: str, data_type: str) -> str:
     return sql_str
 
 
-def drop_column(table_name: str, column_name: str) -> str:
+def drop_column(
+    table_name: str, 
+    column_name: str
+) -> str:
     """
     Generate SQL code to drop a column from a table.
 
@@ -255,7 +298,11 @@ def drop_column(table_name: str, column_name: str) -> str:
     return sql_str
 
 
-def modify_column(table_name: str, column_name: str, data_type: str) -> str:
+def modify_column(
+    table_name: str, 
+    column_name: str, 
+    data_type: str
+) -> str:
     """
     Generate SQL code to modify a column in a table.
     Args:
@@ -271,7 +318,12 @@ def modify_column(table_name: str, column_name: str, data_type: str) -> str:
     return sql_str
 
 
-def rename_column(table_name: str, old_name: str, new_name: str, data_type: str) -> str:
+def rename_column(
+    table_name: str, 
+    old_name: str, 
+    new_name: str, 
+    data_type: str
+) -> str:
     """
     Generate SQL code to rename a column in a table.
     Args:
@@ -288,12 +340,15 @@ def rename_column(table_name: str, old_name: str, new_name: str, data_type: str)
     return sql_str
 
 
-def add_primary_key(table_name: str, column_name: str | tuple | list) -> str:
+def add_primary_key(
+    table_name: str, 
+    column_name: Union[str, Tuple, List]
+) -> str:
     """
     Generate SQL code to add a primary key to a table.
     Args:
         table_name (str): The name of the table.
-        column_name (str | tuple | list): The column to set as primary key.
+        column_name (Union[str, Tuple, List]): The column to set as primary key.
     Returns:
         str: The SQL code to add the primary key.
     """
@@ -302,7 +357,12 @@ def add_primary_key(table_name: str, column_name: str | tuple | list) -> str:
     return sql_str
 
 
-def add_foreign_key(table_name: str, column_name: str, ref_table: str, ref_column: str) -> str:
+def add_foreign_key(
+    table_name: str, 
+    column_name: str, 
+    ref_table: str, 
+    ref_column: str
+) -> str:
     """
     Generate SQL code to add a foreign key to a table.
     Args:
@@ -317,7 +377,10 @@ def add_foreign_key(table_name: str, column_name: str, ref_table: str, ref_colum
     return sql_str
 
 
-def rename_table(old_name: str, new_name: str) -> str:
+def rename_table(
+    old_name: str, 
+    new_name: str
+) -> str:
     """
     Generate SQL code to rename a table.
     Args:
@@ -330,7 +393,9 @@ def rename_table(old_name: str, new_name: str) -> str:
     return sql_str
 
 
-def create_database(db_name: str) -> str:
+def create_database(
+    db_name: str
+) -> str:
     """
     Generate SQL code to create a database.
     Args:
@@ -342,7 +407,9 @@ def create_database(db_name: str) -> str:
     return sql_str
 
 
-def drop_database(db_name: str) -> str:
+def drop_database(
+    db_name: str
+) -> str:
     """
     Generate SQL code to drop a database.
     Args:
@@ -354,7 +421,9 @@ def drop_database(db_name: str) -> str:
     return sql_str
 
 
-def use_database(db_name: str) -> str:
+def use_database(
+    db_name: str
+) -> str:
     """
     Generate SQL code to use a database.
     Args:

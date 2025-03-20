@@ -1,7 +1,7 @@
 CREATE_DATABASE = "CREATE DATABASE {}" # name
 USE_DATABASE = "USE {}" # name
 DROP_DATABASE = "DROP DATABASE {}" # name
-CREATE_TABLE = "CREATE TABLE {} ({})" # name, column_info
+CREATE_TABLE = "CREATE TABLE IF NOT EXISTS {} ({})" # name, column_info
 DROP_TABLE = "DROP TABLE {}" # name
 WHERE = "WHERE {}" # condition
 SELECT = "SELECT {} FROM {} {}" # column, tables, condition
