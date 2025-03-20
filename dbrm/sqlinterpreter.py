@@ -1,14 +1,14 @@
-from dbrm.template import *
-from dbrm.utils import size, DTYPE_MAPPING
+from .template import *
+from .utils import DTYPE_MAPPING, check_size, process_value
 
 
-def create_table(table_name: str, column_info: tuple) -> str:
+def create_table(table_name: str, column_info: tuple | list) -> str:
     """
     Generate SQL code to create a table with the specified name and columns.
 
     Args:
         table_name (str): The name of the table to create.
-        column_info (tuple): A tuple of tuples, where each tuple contains the column name, its data type and length.
+        column_info (tuple | list): A tuple or list of tuples/lists, where each contains the column name, its data type and length.
 
     Returns:
         str: The SQL code to create the table.
@@ -43,80 +43,99 @@ def drop_table(table_name: str) -> str:
     return sql_str
 
 
-def select(column_names: str | tuple, table_names: str | tuple, conditions: str | tuple = '') -> str:
+def where(condition: str | tuple | list) -> str:
+    """
+    Generate SQL code for a WHERE clause.
+
+    Args:
+        condition (str | tuple | list): The condition for the WHERE clause.
+
+    Returns:
+        str: The SQL code for the WHERE clause.
+    """
+    if condition is None or condition == '':
+        return ''
+    condition = ' AND '.join(condition) if isinstance(condition, (tuple, list)) else condition
+    sql_str = WHERE.format(condition)
+    return sql_str
+
+
+def select(column_name: str | tuple | list, table_name: str | tuple | list, condition: str | tuple | list = None) -> str:
     """
     Generate SQL code to select data from a table.
 
     Args:
-        column_names (str | tuple): The columns to select.
-        table_names (str | tuple): The tables to select from.
-        conditions (str | tuple): The conditions for the selection.
+        column_name (str | tuple | list): The column to select.
+        table_name (str | tuple | list): The table to select from.
+        condition (str | tuple | list): The condition for the selection.
 
     Returns:
         str: The SQL code to select data from the table.
     """
-    columns = ', '.join(column_names) if isinstance(column_names, tuple) else column_names
-    tables = ', '.join(table_names) if isinstance(table_names, tuple) else table_names
-    conditions = ' AND '.join(conditions) if isinstance(conditions, tuple) else conditions
-    sql_str = SELECT.format(columns, tables, conditions)
-    return sql_str
+    columns = ', '.join(column_name) if isinstance(column_name, (tuple, list)) else column_name
+    tables = ', '.join(table_name) if isinstance(table_name, (tuple, list)) else table_name
+    condition = where(condition)
+    sql_str = SELECT.format(columns, tables, condition)
+    return sql_str.strip()
 
 
-def insert(table_name: str, column_names: str | tuple, values: int | tuple) -> str:
+def insert(table_name: str, column_name: str | tuple | list, value) -> str:
     """
     Generate SQL code to insert data into a table.
 
     Args:
-        table_name (str): The tables to insert data into.
-        column_names (str | tuple): The columns to insert data into.
-        values (int | tuple): The values to insert.
+        table_name (str): The table to insert data into.
+        column_name (str | tuple | list): The column to insert data into.
+        value: The value to insert.
 
     Returns:
         str: The SQL code to insert data into the table.
     """
-    if size(column_names) != size(values):
+    if not check_size(column_name, value):
         raise ValueError("column_names and values must have the same length")
-    columns = ', '.join(column_names) if isinstance(column_names, tuple) else column_names
-    values = ', '.join(map(str, values)) if isinstance(values, tuple) else str(values)
-    sql_str = INSERT.format(table_name, columns, values)
+    columns = ', '.join(column_name) if isinstance(column_name, (tuple, list)) else column_name
+    value = process_value(value)
+    value = ', '.join(value) if isinstance(value, list) else value
+    sql_str = INSERT.format(table_name, columns, value)
     return sql_str
 
 
-def update(table_name: str, column_names: str | tuple, values: int | tuple, conditions: str | tuple) -> str:
+def update(table_name: str, column_name: str | tuple | list, value, condition: str | tuple | list = None) -> str:
     """
     Generate SQL code to update data in a table.
 
     Args:
-        table_name (str): The tables to update data in.
-        column_names (str | tuple): The columns to update.
-        values (int | tuple): The values to update.
-        conditions (str | tuple): The conditions for the update.
+        table_name (str): The table to update data in.
+        column_name (str | tuple | list): The column to update.
+        value: The value to update.
+        condition (str | tuple | list): The condition for the update.
 
     Returns:
         str: The SQL code to update data in the table.
     """
-    if size(column_names) != size(values):
+    if not check_size(column_name, value):
         raise ValueError("column_names and values must have the same length")
-    set_clause = ', '.join(f"{col} = {val}" for col, val in zip(column_names, values)) if isinstance(column_names, tuple) else f"{column_names} = {values}"
-    conditions = ' AND '.join(conditions) if isinstance(conditions, tuple) else conditions
-    sql_str = UPDATE.format(table_name, set_clause, conditions)
-    return sql_str
+    value = process_value(value)
+    set_clause = ', '.join(f"{col} = {val}" for col, val in zip(column_name, value)) if isinstance(column_name, (tuple, list)) else f"{column_name} = {value}"
+    condition = where(condition)
+    sql_str = UPDATE.format(table_name, set_clause, condition)
+    return sql_str.strip()
 
 
-def delete(table_name: str, conditions: str | tuple) -> str:
+def delete(table_name: str, condition: str | tuple | list = None) -> str:
     """
     Generate SQL code to delete data from a table.
 
     Args:
-        table_name (str): The tables to delete data from.
-        conditions (str | tuple): The conditions for the deletion.
+        table_name (str): The table to delete data from.
+        condition (str | tuple | list): The condition for the deletion.
 
     Returns:
         str: The SQL code to delete data from the table.
     """
-    conditions = ' AND '.join(conditions) if isinstance(conditions, tuple) else conditions
-    sql_str = DELETE.format(table_name, conditions)
-    return sql_str
+    condition = where(condition)
+    sql_str = DELETE.format(table_name, condition)
+    return sql_str.strip()
 
 
 def like(pattern: str) -> str:
@@ -148,38 +167,38 @@ def union(query1: str, query2: str) -> str:
     return sql_str
 
 
-def order_by(column_names: str, ascending: bool = True) -> str:
+def order_by(column_name: str, ascending: bool = True) -> str:
     """
     Generate SQL code for an ORDER BY clause.
 
     Args:
-        column_names (str): The columns to order by.
+        column_name (str): The column to order by.
         ascending (bool): Whether to order in ascending or descending order.
 
     Returns:
         str: The SQL code for the ORDER BY clause.
     """
     order = 'ASC' if ascending else 'DESC'
-    sql_str = ORDER_BY.format(f"{column_names} {order}")
+    sql_str = ORDER_BY.format(f"{column_name} {order}")
     return sql_str
 
 
-def group_by(column_names: str | tuple) -> str:
+def group_by(column_name: str | tuple | list) -> str:
     """
     Generate SQL code for a GROUP BY clause.
 
     Args:
-        column_names (str | tuple): The columns to group by.
+        column_name (str | tuple | list): The column to group by.
 
     Returns:
         str: The SQL code for the GROUP BY clause.
     """
-    columns = ', '.join(column_names) if isinstance(column_names, tuple) else column_names
+    columns = ', '.join(column_name) if isinstance(column_name, (tuple, list)) else column_name
     sql_str = GROUP_BY.format(columns)
     return sql_str
 
 
-def join(table1: str, table2: str, join_type: str = 'INNER', conditions: str | tuple = '') -> str:
+def join(table1: str, table2: str, join_type: str = 'INNER', condition: str | tuple | list = None) -> str:
     """
     Generate SQL code for a JOIN operation.
 
@@ -187,16 +206,20 @@ def join(table1: str, table2: str, join_type: str = 'INNER', conditions: str | t
         table1 (str): The first table.
         table2 (str): The second table.
         join_type (str): The type of join (INNER, LEFT, RIGHT).
-        conditions (str | tuple): The conditions for the join.
+        condition (str | tuple | list): The condition for the join.
 
     Returns:
         str: The SQL code for the JOIN operation.
     """
     if join_type not in ['INNER', 'LEFT', 'RIGHT', 'NATURAL']:
         raise ValueError(f"Unsupported join type: {join_type}")
-    conditions = ' AND '.join(conditions) if isinstance(conditions, tuple) else conditions
-    sql_str = JOIN.format(table1, join_type, table2, conditions)
-    return sql_str
+    if condition is None:
+        condition = ''
+    else:
+        condition = ' AND '.join(condition) if isinstance(condition, (tuple, list)) else condition
+        condition = 'ON ' + condition
+    sql_str = JOIN.format(table1, join_type, table2, condition)
+    return sql_str.strip()
 
 
 def add_column(table_name: str, column_name: str, data_type: str) -> str:
@@ -205,7 +228,7 @@ def add_column(table_name: str, column_name: str, data_type: str) -> str:
 
     Args:
         table_name (str): The name of the table.
-        column_name (str): The name of the column to add.
+        column_name (str): The column to add.
         data_type (str): The data type of the column.
 
     Returns:
@@ -223,7 +246,7 @@ def drop_column(table_name: str, column_name: str) -> str:
 
     Args:
         table_name (str): The name of the table.
-        column_name (str): The name of the column to drop.
+        column_name (str): The column to drop.
 
     Returns:
         str: The SQL code to drop the column.
@@ -237,7 +260,7 @@ def modify_column(table_name: str, column_name: str, data_type: str) -> str:
     Generate SQL code to modify a column in a table.
     Args:
         table_name (str): The name of the table.
-        column_name (str): The name of the column to modify.
+        column_name (str): The column to modify.
         data_type (str): The new data type of the column.
     Returns:
         str: The SQL code to modify the column.
@@ -265,16 +288,16 @@ def rename_column(table_name: str, old_name: str, new_name: str, data_type: str)
     return sql_str
 
 
-def add_primary_key(table_name: str, column_names: str | tuple) -> str:
+def add_primary_key(table_name: str, column_name: str | tuple | list) -> str:
     """
     Generate SQL code to add a primary key to a table.
     Args:
         table_name (str): The name of the table.
-        column_names (str | tuple): The columns to set as primary key.
+        column_name (str | tuple | list): The column to set as primary key.
     Returns:
         str: The SQL code to add the primary key.
     """
-    columns = ', '.join(column_names) if isinstance(column_names, tuple) else column_names
+    columns = ', '.join(column_name) if isinstance(column_name, (tuple, list)) else column_name
     sql_str = ADD_PRIMARY_KEY.format(table_name, columns)
     return sql_str
 

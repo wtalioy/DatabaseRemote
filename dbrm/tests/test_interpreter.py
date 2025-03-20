@@ -26,6 +26,15 @@ class TestSQLInterpreter(unittest.TestCase):
     def test_drop_table(self):
         expected = "DROP TABLE employees"
         self.assertEqual(drop_table('employees'), expected)
+
+    def test_where(self):
+        # Test with string condition
+        expected = "WHERE age > 30"
+        self.assertEqual(where('age > 30'), expected)
+        
+        # Test with tuple conditions
+        expected = "WHERE age > 30 AND salary < 50000"
+        self.assertEqual(where(('age > 30', 'salary < 50000')), expected)
     
     def test_select(self):
         # Test with string arguments
@@ -42,7 +51,7 @@ class TestSQLInterpreter(unittest.TestCase):
         self.assertEqual(insert('employees', 'id', 1), expected)
         
         # Test with tuple columns and values
-        expected = "INSERT INTO employees (id, name, age) VALUES (1, John, 30)"
+        expected = "INSERT INTO employees (id, name, age) VALUES (1, 'John', 30)"
         self.assertEqual(insert('employees', ('id', 'name', 'age'), (1, 'John', 30)), expected)
         
         # Test with mismatched columns and values
@@ -52,10 +61,10 @@ class TestSQLInterpreter(unittest.TestCase):
     def test_update(self):
         # Test with string columns and single value
         expected = "UPDATE employees SET salary = 50000 WHERE id = 1"
-        self.assertEqual(update('employees', 'salary', 50000, 'id = 1'), expected)
+        self.assertEqual(update('employees', 'salary', 50000, ('id = 1')), expected)
         
         # Test with tuple columns and values
-        expected = "UPDATE employees SET name = John, age = 35 WHERE id = 1 AND department = 'IT'"
+        expected = "UPDATE employees SET name = 'John', age = 35 WHERE id = 1 AND department = 'IT'"
         self.assertEqual(update('employees', ('name', 'age'), ('John', 35), ('id = 1', "department = 'IT'")), expected)
         
         # Test with mismatched columns and values
@@ -69,7 +78,7 @@ class TestSQLInterpreter(unittest.TestCase):
         
         # Test with tuple conditions
         expected = "DELETE FROM employees WHERE age > 60 AND department = 'HR'"
-        self.assertEqual(delete('employees', ('age > 60', "department = 'HR'")), expected)
+        self.assertEqual(delete('employees', 'age > 60 AND department = \'HR\''), expected)
     
     def test_like(self):
         expected = "LIKE '%Smith%'"
@@ -106,11 +115,11 @@ class TestSQLInterpreter(unittest.TestCase):
         
         # Test left join
         expected = "SELECT * FROM employees LEFT JOIN departments ON employees.dept_id = departments.id"
-        self.assertEqual(join('employees', 'departments', 'LEFT', 'employees.dept_id = departments.id'), expected)
+        self.assertEqual(select('*', join('employees', 'departments', 'LEFT', 'employees.dept_id = departments.id')), expected)
         
         # Test with multiple conditions
         expected = "SELECT * FROM employees INNER JOIN departments ON employees.dept_id = departments.id AND employees.location = departments.location"
-        self.assertEqual(join('employees', 'departments', 'INNER', ('employees.dept_id = departments.id', 'employees.location = departments.location')), expected)
+        self.assertEqual(select('*', join('employees', 'departments', 'INNER', ('employees.dept_id = departments.id', 'employees.location = departments.location'))), expected)
         
         # Test with invalid join type
         with self.assertRaises(ValueError):
