@@ -1,8 +1,8 @@
 from pandas import DataFrame
 from typing import Literal
 from itertools import islice
-from . import sqlinterpreter as itp
-from utils import DTYPE_MAPPING
+import dbrm.sqlinterpreter as itp
+from dbrm.utils import DTYPE_MAPPING
 
 class SQLTable:
     def __init__(
