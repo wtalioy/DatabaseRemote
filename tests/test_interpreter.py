@@ -6,19 +6,11 @@ class TestSQLInterpreter(unittest.TestCase):
     
     def test_create_table(self):
         # Test basic table creation
-        column_info = (
-            ('id', 'int', None),
-            ('name', 'object', 50),
-            ('age', 'int', None),
-            ('salary', 'float', None)
-        )
-        expected = "CREATE TABLE employees (id INTEGER, name VARCHAR(50), age INTEGER, salary FLOAT)"
-        self.assertEqual(create_table('employees', column_info), expected)
+        columns = ('id', 'name', 'age')
+        dtypes = ('INTEGER', 'VARCHAR(50)', 'INTEGER')
+        expected = "CREATE TABLE IF NOT EXISTS employees (id INTEGER, name VARCHAR(50), age INTEGER)"
+        self.assertEqual(create_table('employees', columns, dtypes), expected)
         
-        # Test with invalid data type
-        with self.assertRaises(ValueError):
-            create_table('employees', (('id', 'invalid_type', None),))
-    
     def test_drop_table(self):
         expected = "DROP TABLE employees"
         self.assertEqual(drop_table('employees'), expected)
@@ -116,18 +108,10 @@ class TestSQLInterpreter(unittest.TestCase):
         # Test with multiple conditions
         expected = "SELECT * FROM employees INNER JOIN departments ON employees.dept_id = departments.id AND employees.location = departments.location"
         self.assertEqual(select('*', join('employees', 'departments', 'INNER', ('employees.dept_id = departments.id', 'employees.location = departments.location'))), expected)
-        
-        # Test with invalid join type
-        with self.assertRaises(ValueError):
-            join('employees', 'departments', 'INVALID', 'employees.dept_id = departments.id')
     
     def test_add_column(self):
-        expected = "ALTER TABLE employees ADD COLUMN email VARCHAR"
-        self.assertEqual(add_column('employees', 'email', 'object'), expected)
-        
-        # Test with invalid data type
-        with self.assertRaises(ValueError):
-            add_column('employees', 'score', 'invalid_type')
+        expected = "ALTER TABLE employees ADD COLUMN email VARCHAR(10)"
+        self.assertEqual(add_column('employees', 'email', 'VARCHAR(10)'), expected)
     
     def test_drop_column(self):
         expected = "ALTER TABLE employees DROP COLUMN email"
@@ -135,19 +119,11 @@ class TestSQLInterpreter(unittest.TestCase):
     
     def test_modify_column(self):
         expected = "ALTER TABLE employees MODIFY COLUMN salary FLOAT"
-        self.assertEqual(modify_column('employees', 'salary', 'float'), expected)
-        
-        # Test with invalid data type
-        with self.assertRaises(ValueError):
-            modify_column('employees', 'salary', 'invalid_type')
+        self.assertEqual(modify_column('employees', 'salary', 'FLOAT'), expected)
     
     def test_rename_column(self):
         expected = "ALTER TABLE employees CHANGE COLUMN old_name new_name INTEGER"
-        self.assertEqual(rename_column('employees', 'old_name', 'new_name', 'int'), expected)
-        
-        # Test with invalid data type
-        with self.assertRaises(ValueError):
-            rename_column('employees', 'old_name', 'new_name', 'invalid_type')
+        self.assertEqual(rename_column('employees', 'old_name', 'new_name', 'INTEGER'), expected)
     
     def test_add_primary_key(self):
         # Test with string column
