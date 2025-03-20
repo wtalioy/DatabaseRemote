@@ -423,3 +423,22 @@ def use_database(
     """
     sql_str = USE_DATABASE.format(db_name)
     return sql_str
+
+
+def insert_many_template(
+    table_name: str, 
+    column_name: Union[str, Tuple, List]
+) -> str:
+    """
+    Generate a parameterized SQL template for executemany operations.
+    Args:
+        table_name (str): The table to insert data into.
+        column_name (Union[str, Tuple, List]): The columns to insert data into. 
+    Returns:
+        str: A parameterized SQL template for the insert operation.
+    """
+    columns = ', '.join(column_name) if isinstance(column_name, (tuple, list)) else column_name
+    column_count = len(column_name) if isinstance(column_name, (tuple, list)) else 1
+    placeholders = ', '.join(['?'] * column_count)
+    sql_template = INSERT.format(table_name, columns, placeholders)
+    return sql_template
