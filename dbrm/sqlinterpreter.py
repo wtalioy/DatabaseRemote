@@ -89,7 +89,7 @@ def select(
 def insert(
     table_name: str, 
     column_name: Union[str, Tuple, List], 
-    value: Any
+    value
 ) -> str:
     """
     Generate SQL code to insert data into a table.
@@ -114,7 +114,7 @@ def insert(
 def update(
     table_name: str, 
     column_name: Union[str, Tuple, List], 
-    value: Any, 
+    value,
     condition: Optional[Union[str, Tuple, List]] = None
 ) -> str:
     """
@@ -257,7 +257,7 @@ def join(
 def add_column(
     table_name: str, 
     column_name: str, 
-    data_type: str
+    dtype: str
 ) -> str:
     """
     Generate SQL code to add a column to a table.
@@ -265,14 +265,12 @@ def add_column(
     Args:
         table_name (str): The name of the table.
         column_name (str): The column to add.
-        data_type (str): The data type of the column.
+        dtype (str): The data type of the column.
 
     Returns:
         str: The SQL code to add the column.
     """
-    if data_type not in DTYPE_MAPPING:
-        raise ValueError(f"Unsupported data type: {data_type}")
-    sql_str = ADD_COLUMN.format(table_name, column_name, DTYPE_MAPPING[data_type])
+    sql_str = ADD_COLUMN.format(table_name, column_name, dtype)
     return sql_str
 
 
@@ -297,20 +295,18 @@ def drop_column(
 def modify_column(
     table_name: str, 
     column_name: str, 
-    data_type: str
+    dtype: str
 ) -> str:
     """
     Generate SQL code to modify a column in a table.
     Args:
         table_name (str): The name of the table.
         column_name (str): The column to modify.
-        data_type (str): The new data type of the column.
+        dtype (str): The new data type of the column.
     Returns:
         str: The SQL code to modify the column.
     """
-    if data_type not in DTYPE_MAPPING:
-        raise ValueError(f"Unsupported data type: {data_type}")
-    sql_str = MODIFY_COLUMN.format(table_name, column_name, DTYPE_MAPPING[data_type])
+    sql_str = MODIFY_COLUMN.format(table_name, column_name, dtype)
     return sql_str
 
 
@@ -318,7 +314,7 @@ def rename_column(
     table_name: str, 
     old_name: str, 
     new_name: str, 
-    data_type: str
+    dtype: str
 ) -> str:
     """
     Generate SQL code to rename a column in a table.
@@ -326,13 +322,11 @@ def rename_column(
         table_name (str): The name of the table.
         old_name (str): The current name of the column.
         new_name (str): The new name of the column.
-        data_type (str): The data type of the column.
+        dtype (str): The data type of the column.
     Returns:
         str: The SQL code to rename the column.
     """
-    if data_type not in DTYPE_MAPPING:
-        raise ValueError(f"Unsupported data type: {data_type}")
-    sql_str = RENAME_COLUMN.format(table_name, old_name, new_name, DTYPE_MAPPING[data_type])
+    sql_str = RENAME_COLUMN.format(table_name, old_name, new_name, dtype)
     return sql_str
 
 
