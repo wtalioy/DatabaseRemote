@@ -1,33 +1,29 @@
-from .template import *
-from .utils import DTYPE_MAPPING, check_size, process_value
+from ._template import *
+from .utils import check_size, process_value
 from typing import Literal, Union, List, Tuple, Optional, Any
+
 
 def create_table(
     table_name: str, 
-    column_info: Union[Tuple, List]
+    column_name: Union[str, Tuple, List],
+    dtype: Union[str, Tuple, List],
 ) -> str:
     """
     Generate SQL code to create a table with the specified name and columns.
 
     Args:
         table_name (str): The name of the table to create.
-        column_info (Union[Tuple, List]): A tuple or list of tuples/lists, where each contains the column name, its data type and length.
+        column_name (Union[str, Tuple, List]): The name of the column to create.
+        dtype (Union[str, Tuple, List]): The data type of the column.
 
     Returns:
         str: The SQL code to create the table.
     """
-    column_definitions = []
-    for col_name, dtype, length in column_info:
-        if dtype not in DTYPE_MAPPING:
-            raise ValueError(f"Unsupported data type: {dtype}")
-        if dtype == 'object':
-            if length is not None:
-                column_definitions.append(f"{col_name} {DTYPE_MAPPING[dtype]}({length})")
-            else:
-                column_definitions.append(f"{col_name} {DTYPE_MAPPING[dtype]}(255)")
-        else:
-            column_definitions.append(f"{col_name} {DTYPE_MAPPING[dtype]}")
-    column_definitions = ', '.join(column_definitions)
+    if not check_size(column_name, dtype):
+        raise ValueError("column_names and dtypes must have the same length")
+    column_definitions = ', '.join(
+        f"{col} {dtype}" for col, dtype in zip(column_name, dtype)
+    ) if isinstance(column_name, (tuple, list)) else f"{column_name} {dtype}"
     sql_str = CREATE_TABLE.format(table_name, column_definitions)
     return sql_str
 
