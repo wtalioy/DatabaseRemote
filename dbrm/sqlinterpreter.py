@@ -1,5 +1,5 @@
-from ._template import *
-from .utils import check_size, process_value
+from dbrm._template import *
+from dbrm.utils import check_size, process_value
 from typing import Literal, Union, List, Tuple, Optional, Any
 
 

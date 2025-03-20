@@ -1,7 +1,7 @@
 import pandas as pd
 from typing import Literal
-from .dbcursor import get_cursor
-from .sqltable import SQLTable
+from dbrm.dbcursor import get_cursor
+from dbrm.sqltable import SQLTable
 
 
 def transfer_csv(
