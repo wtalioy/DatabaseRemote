@@ -1,6 +1,6 @@
 import pandas as pd
 from typing import Literal
-from dbrm.dbcursor import get_cursor
+from dbrm.dbconnector import get_cursor
 from dbrm.sqltable import SQLTable
 
 
