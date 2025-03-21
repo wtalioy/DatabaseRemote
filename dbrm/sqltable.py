@@ -50,7 +50,9 @@ class SQLTable:
             if self.if_exists == "fail":
                 raise ValueError(f"Table '{self.name}' already exists.")
             if self.if_exists == "replace":
-                itp.drop_table(self.name)
+                drop_sql = itp.drop_table(self.name)
+                self.cursor.execute(drop_sql)
+                self.cursor.commit()
                 self._execute_create()
             elif self.if_exists == "append":
                 pass
