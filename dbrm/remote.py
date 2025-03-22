@@ -1,11 +1,12 @@
 import pandas as pd
+import numpy as np
 from typing import Literal
 from dbrm.dbconnector import get_cursor
 from dbrm.sqltable import SQLTable
 
 
 def transfer_csv(
-    csv_file: str,
+    path: str,
     table_name: str,
     if_exists: Literal["append", "replace", "fail"] = "fail",
     chunk_size: int | None = None,
@@ -15,7 +16,7 @@ def transfer_csv(
     Transfer a CSV file to a SQL table.
 
     Args:
-        csv_file (str): The path to the CSV file to transfer.
+        path (str): The path to the CSV file to transfer.
         table_name (str): The name of the SQL table.
         if_exists (Literal["append", "replace", "fail"]): What to do if the table already exists. Options are 'append', 'replace', or 'fail'.
         chunk_size (int | None): The number of rows to write at a time. If None, all rows will be written at once.
@@ -25,10 +26,13 @@ def transfer_csv(
         None
     """
     cursor = get_cursor(**kwargs)
+    df = pd.read_csv(path)
+    if df.empty:
+        raise ValueError("The CSV file is empty. No data to transfer.")
     sql_table = SQLTable(
         cursor=cursor,
         table_name=table_name,
-        dataframe=pd.read_csv(csv_file),
+        dataframe=df,
         if_exists=if_exists,
     )
     sql_table.create()

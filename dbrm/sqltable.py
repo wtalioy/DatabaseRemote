@@ -1,4 +1,5 @@
-from pandas import DataFrame
+import pandas as pd
+import numpy as np
 from typing import Literal
 from itertools import islice
 import dbrm.sqlinterpreter as itp
@@ -9,13 +10,13 @@ class SQLTable:
         self,
         cursor,
         table_name: str,
-        dataframe: DataFrame | None = None,
+        dataframe: pd.DataFrame | None = None,
         if_exists: Literal["append", "replace", "fail"] = "fail",
     ):
         self.cursor = cursor
         self.name = table_name
-        self.data = dataframe
-        self.dtypes = self._get_dtypes()
+        self.data = dataframe.replace([pd.NA, pd.NaT, np.nan], None)
+        self.dtypes = self._get_dtypes(dataframe)
         self.if_exists = if_exists
 
     def exists(self) -> bool:
@@ -26,18 +27,18 @@ class SQLTable:
         except Exception:
             return False
 
-    def _get_dtypes(self) -> list:
+    def _get_dtypes(self, df) -> list:
         dtypes = []
-        for col in self.data.columns:
-            dtype = self.data[col].dtype
+        for col in df.columns:
+            dtype = df[col].dtype
             dtype_name = dtype.name if hasattr(dtype, 'name') else str(dtype)
             
-            if dtype_name == "object" and self.data[col].notna().any():
-                length = self.data[col].str.len().max()
+            if dtype_name == "object" and df[col].notna().any():
+                length = df[col].str.len().max()
                 if length > 255:
                     dtype_name = "text"
-            dtype = DTYPE_MAPPING[dtype_name]
-            dtypes.append(dtype)
+            dtype_name = DTYPE_MAPPING[dtype_name]
+            dtypes.append(dtype_name)
         return dtypes
     
     def _execute_create(self) -> None:
