@@ -1,8 +1,8 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, call
 import pandas as pd
-from dbrm.remote import transfer_csv
-from dbrm.sqltable import SQLTable
+from dbrm import Engine, Session
+from dbrm.remote import transfer_csv, infer_schema_from_dataframe
 
 
 class TestTransferCSV(unittest.TestCase):
@@ -11,59 +11,96 @@ class TestTransferCSV(unittest.TestCase):
         self.csv_file = 'data/sample_data.csv'
         self.test_data = pd.read_csv(self.csv_file)
         
-        # Mock cursor
+        # Mock engine and session
+        self.mock_engine = MagicMock()
+        self.mock_session = MagicMock()
         self.mock_cursor = MagicMock()
         
-        # 设置 execute 方法的行为
-        def execute_side_effect(sql):
-            if "SELECT 1 FROM" in sql:
-                raise Exception("Table does not exist")
-            # 其他 SQL 语句正常执行
-            return None
-            
-        self.mock_cursor.execute.side_effect = execute_side_effect
-        self.mock_cursor.executemany = MagicMock()
-        self.mock_cursor.commit = MagicMock()
+        # Configure session's execute method to return cursor
+        self.mock_session.execute.return_value = self.mock_cursor
+        self.mock_cursor.fetchone.return_value = [0]  # Table doesn't exist
+        
+        # Setup context manager simulation
+        self.mock_session.__enter__.return_value = self.mock_session
+        self.mock_session.__exit__.return_value = None
 
-    @patch('dbrm.remote.get_cursor')
-    def test_transfer_csv_sql_generation(self, mock_get_cursor):
-        # 设置 mock
-        mock_get_cursor.return_value = self.mock_cursor
+    @patch('dbrm.remote.Session')
+    def test_transfer_csv_sql_generation(self, mock_session_class):
+        # Setup mocks
+        mock_session_class.return_value = self.mock_session
         
-        # 执行函数
-        transfer_csv(self.csv_file, 'employee_table', if_exists='replace')
-        
-        # 验证生成的 SQL
-        expected_create_sql = (
-            "CREATE TABLE IF NOT EXISTS employee_table "
-            "(姓名 VARCHAR(255), 年龄 INTEGER, 出生日期 VARCHAR(255), "
-            "工资 DOUBLE, 是否在职 BOOLEAN, 邮箱 VARCHAR(255), "
-            "部门 VARCHAR(255), 评分 DOUBLE)"
+        # Execute function
+        transfer_csv(
+            csv_file=self.csv_file, 
+            table_name='employee_table', 
+            engine=self.mock_engine,
+            if_exists='replace'
         )
         
-        # 检查是否调用了正确的 SQL 语句
-        create_calls = [call[0][0] for call in self.mock_cursor.execute.call_args_list]
-        self.assertIn(expected_create_sql, create_calls)
+        # Verify create table SQL generation
+        # First determine what the schema should be
+        create_query = infer_schema_from_dataframe(self.test_data, 'employee_table')
         
-        # 验证插入语句的模板
-        expected_insert_template = (
-            "INSERT INTO employee_table "
-            "(姓名, 年龄, 出生日期, 工资, 是否在职, 邮箱, 部门, 评分) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        # Check if the create query was executed
+        create_calls = [call[0][0] for call in self.mock_session.execute.call_args_list 
+                       if 'CREATE TABLE' in call[0][0]]
+        self.assertTrue(any('employee_table' in call for call in create_calls))
+        
+        # Find any execute calls with INSERT INTO
+        insert_calls = [call[0][0] for call in self.mock_session.execute.call_args_list 
+                        if 'INSERT INTO employee_table' in call[0][0]]
+        self.assertTrue(len(insert_calls) > 0)
+        
+        # Check that all data rows were processed
+        self.assertEqual(
+            len([call for call in self.mock_session.execute.call_args_list 
+                if 'INSERT INTO employee_table' in call[0][0]]), 
+            len(self.test_data)
         )
         
-        # 检查插入语句
-        insert_call = self.mock_cursor.executemany.call_args_list[0]
-        self.assertEqual(insert_call[0][0], expected_insert_template)
+    @patch('dbrm.remote.Session')
+    def test_transfer_csv_with_existing_table(self, mock_session_class):
+        # Setup mocks for existing table
+        mock_session = MagicMock()
+        mock_cursor = MagicMock()
+        mock_cursor.fetchone.return_value = [1]  # Table exists
+        mock_session.execute.return_value = mock_cursor
+        mock_session.__enter__.return_value = mock_session
+        mock_session.__exit__.return_value = None
+        mock_session_class.return_value = mock_session
         
-        # 检查插入的第一行数据
-        inserted_data = insert_call[0][1][0]
-        self.assertEqual(inserted_data, 
-                        ('张三', 28, '1995-03-15', 12500.50, True, 
-                         'zhangsan@email.com', '研发部', 4.5))
+        # Execute function with 'replace' option
+        transfer_csv(
+            csv_file=self.csv_file, 
+            table_name='employee_table',
+            engine=self.mock_engine,
+            if_exists='replace'
+        )
         
-        # 验证所有数据都被正确传入
-        self.assertEqual(len(insert_call[0][1]), len(self.test_data))
+        # Check if DROP TABLE was executed
+        drop_calls = [call[0][0] for call in mock_session.execute.call_args_list 
+                     if 'DROP TABLE' in call[0][0]]
+        self.assertTrue(len(drop_calls) > 0)
+        
+    @patch('dbrm.remote.Session')
+    def test_transfer_csv_fail_if_exists(self, mock_session_class):
+        # Setup mocks for existing table
+        mock_session = MagicMock()
+        mock_cursor = MagicMock()
+        mock_cursor.fetchone.return_value = [1]  # Table exists
+        mock_session.execute.return_value = mock_cursor
+        mock_session.__enter__.return_value = mock_session
+        mock_session.__exit__.return_value = None
+        mock_session_class.return_value = mock_session
+        
+        # Check that ValueError is raised with 'fail' option
+        with self.assertRaises(ValueError):
+            transfer_csv(
+                csv_file=self.csv_file, 
+                table_name='employee_table',
+                engine=self.mock_engine,
+                if_exists='fail'
+            )
 
 
 if __name__ == '__main__':

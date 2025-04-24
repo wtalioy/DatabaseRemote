@@ -1,159 +1,104 @@
-from dbrm.sqlinterpreter import *
 import unittest
+from dbrm import Select, Insert, Update, Delete, Engine, Session, Table, Column, Integer, String
 
-
-class TestSQLInterpreter(unittest.TestCase):
+class TestQueryBuilder(unittest.TestCase):
     
-    def test_create_table(self):
-        # Test basic table creation
-        columns = ('id', 'name', 'age')
-        dtypes = ('INTEGER', 'VARCHAR(50)', 'INTEGER')
-        expected = "CREATE TABLE IF NOT EXISTS employees (id INTEGER, name VARCHAR(50), age INTEGER)"
-        self.assertEqual(create_table('employees', columns, dtypes), expected)
-        
-    def test_drop_table(self):
-        expected = "DROP TABLE employees"
-        self.assertEqual(drop_table('employees'), expected)
-
-    def test_where(self):
-        # Test with string condition
-        expected = "WHERE age > 30"
-        self.assertEqual(where('age > 30'), expected)
-        
-        # Test with tuple conditions
-        expected = "WHERE age > 30 AND salary < 50000"
-        self.assertEqual(where(('age > 30', 'salary < 50000')), expected)
-    
-    def test_select(self):
-        # Test with string arguments
+    def test_select_query(self):
+        # Test basic select
+        query = Select("name", "age").from_("employees").where("age > 30")
         expected = "SELECT name, age FROM employees WHERE age > 30"
-        self.assertEqual(select('name, age', 'employees', 'age > 30'), expected)
-        
-        # Test with tuple arguments
-        expected = "SELECT id, name FROM employees WHERE age > 30 AND salary < 50000"
-        self.assertEqual(select(('id', 'name'), 'employees', ('age > 30', 'salary < 50000')), expected)
-    
-    def test_insert(self):
-        # Test with string columns and single value
-        expected = "INSERT INTO employees (id) VALUES (1)"
-        self.assertEqual(insert('employees', 'id', 1), expected)
-        
-        # Test with tuple columns and values
-        expected = "INSERT INTO employees (id, name, age) VALUES (1, 'John', 30)"
-        self.assertEqual(insert('employees', ('id', 'name', 'age'), (1, 'John', 30)), expected)
-        
-        # Test with mismatched columns and values
-        with self.assertRaises(ValueError):
-            insert('employees', ('id', 'name'), (1,))
-    
-    def test_update(self):
-        # Test with string columns and single value
-        expected = "UPDATE employees SET salary = 50000 WHERE id = 1"
-        self.assertEqual(update('employees', 'salary', 50000, ('id = 1')), expected)
-        
-        # Test with tuple columns and values
-        expected = "UPDATE employees SET name = 'John', age = 35 WHERE id = 1 AND department = 'IT'"
-        self.assertEqual(update('employees', ('name', 'age'), ('John', 35), ('id = 1', "department = 'IT'")), expected)
-        
-        # Test with mismatched columns and values
-        with self.assertRaises(ValueError):
-            update('employees', ('name', 'age'), (30,), 'id = 1')
-    
-    def test_delete(self):
-        # Test with string condition
-        expected = "DELETE FROM employees WHERE id = 1"
-        self.assertEqual(delete('employees', 'id = 1'), expected)
-        
-        # Test with tuple conditions
-        expected = "DELETE FROM employees WHERE age > 60 AND department = 'HR'"
-        self.assertEqual(delete('employees', 'age > 60 AND department = \'HR\''), expected)
-    
-    def test_like(self):
-        expected = "LIKE '%Smith%'"
-        self.assertEqual(like('%Smith%'), expected)
-    
-    def test_union(self):
-        query1 = "SELECT * FROM employees WHERE department = 'IT'"
-        query2 = "SELECT * FROM contractors WHERE department = 'IT'"
-        expected = "SELECT * FROM employees WHERE department = 'IT' UNION SELECT * FROM contractors WHERE department = 'IT'"
-        self.assertEqual(union(query1, query2), expected)
-    
-    def test_order_by(self):
-        # Test ascending order (default)
-        expected = "ORDER BY age ASC"
-        self.assertEqual(order_by('age'), expected)
-        
-        # Test descending order
-        expected = "ORDER BY salary DESC"
-        self.assertEqual(order_by('salary', ascending=False), expected)
-    
-    def test_group_by(self):
-        # Test with string column
-        expected = "GROUP BY department"
-        self.assertEqual(group_by('department'), expected)
-        
-        # Test with tuple columns
-        expected = "GROUP BY department, job_title"
-        self.assertEqual(group_by(('department', 'job_title')), expected)
-    
-    def test_join(self):
-        # Test inner join (default)
-        expected = "SELECT * FROM employees INNER JOIN departments ON employees.dept_id = departments.id"
-        self.assertEqual(select('*', join('employees', 'departments', 'INNER', 'employees.dept_id = departments.id')), expected)
-        
-        # Test left join
-        expected = "SELECT * FROM employees LEFT JOIN departments ON employees.dept_id = departments.id"
-        self.assertEqual(select('*', join('employees', 'departments', 'LEFT', 'employees.dept_id = departments.id')), expected)
+        self.assertEqual(query.build(), expected)
         
         # Test with multiple conditions
-        expected = "SELECT * FROM employees INNER JOIN departments ON employees.dept_id = departments.id AND employees.location = departments.location"
-        self.assertEqual(select('*', join('employees', 'departments', 'INNER', ('employees.dept_id = departments.id', 'employees.location = departments.location'))), expected)
-    
-    def test_add_column(self):
-        expected = "ALTER TABLE employees ADD COLUMN email VARCHAR(10)"
-        self.assertEqual(add_column('employees', 'email', 'VARCHAR(10)'), expected)
-    
-    def test_drop_column(self):
-        expected = "ALTER TABLE employees DROP COLUMN email"
-        self.assertEqual(drop_column('employees', 'email'), expected)
-    
-    def test_modify_column(self):
-        expected = "ALTER TABLE employees MODIFY COLUMN salary FLOAT"
-        self.assertEqual(modify_column('employees', 'salary', 'FLOAT'), expected)
-    
-    def test_rename_column(self):
-        expected = "ALTER TABLE employees CHANGE COLUMN old_name new_name INTEGER"
-        self.assertEqual(rename_column('employees', 'old_name', 'new_name', 'INTEGER'), expected)
-    
-    def test_add_primary_key(self):
-        # Test with string column
-        expected = "ALTER TABLE employees ADD PRIMARY KEY (id)"
-        self.assertEqual(add_primary_key('employees', 'id'), expected)
+        query = Select("id", "name").from_("employees").where("age > 30").where("salary < 50000")
+        expected = "SELECT id, name FROM employees WHERE age > 30 AND salary < 50000"
+        self.assertEqual(query.build(), expected)
         
-        # Test with tuple columns
-        expected = "ALTER TABLE employees ADD PRIMARY KEY (id, dept_id)"
-        self.assertEqual(add_primary_key('employees', ('id', 'dept_id')), expected)
+        # Test with order by
+        query = Select("*").from_("employees").order_by("age")
+        expected = "SELECT * FROM employees ORDER BY age"
+        self.assertEqual(query.build(), expected)
+        
+        # Test with limit and offset
+        query = Select("*").from_("employees").limit(10).offset(5)
+        expected = "SELECT * FROM employees LIMIT 10 OFFSET 5"
+        self.assertEqual(query.build(), expected)
+        
+        # Test with group by and having
+        query = Select("department", "AVG(salary)").from_("employees").group_by("department").having("AVG(salary) > 50000")
+        expected = "SELECT department, AVG(salary) FROM employees GROUP BY department HAVING AVG(salary) > 50000"
+        self.assertEqual(query.build(), expected)
+        
+    def test_join_query(self):
+        query = Select("e.name", "d.department_name").from_("employees e").join(
+            "departments d", "e.dept_id = d.id"
+        )
+        expected = "SELECT e.name, d.department_name FROM employees e INNER JOIN departments d ON e.dept_id = d.id"
+        self.assertEqual(query.build(), expected)
     
-    def test_add_foreign_key(self):
-        expected = "ALTER TABLE employees ADD FOREIGN KEY (dept_id) REFERENCES departments (id)"
-        self.assertEqual(add_foreign_key('employees', 'dept_id', 'departments', 'id'), expected)
+    def test_insert_query(self):
+        # Test insert with values
+        insert = Insert("employees")
+        insert._values = {"id": 1, "name": "John", "age": 30}  # Direct access for testing
+        sql, params = insert.build()
+        
+        expected_sql = "INSERT INTO employees (id, name, age) VALUES (?, ?, ?)"
+        expected_params = [1, "John", 30]
+        
+        self.assertEqual(sql, expected_sql)
+        self.assertEqual(params, expected_params)
     
-    def test_rename_table(self):
-        expected = "ALTER TABLE employees RENAME TO staff"
-        self.assertEqual(rename_table('employees', 'staff'), expected)
+    def test_update_query(self):
+        # Test update with values
+        update = Update("employees").set(name="John", age=35).where("id = 1")
+        sql, params = update.build()
+        
+        # Note: Since dictionaries don't guarantee order, we'll check parts of the query
+        self.assertIn("UPDATE employees SET", sql)
+        self.assertIn("name = ?", sql)
+        self.assertIn("age = ?", sql)
+        self.assertIn("WHERE id = 1", sql)
+        
+        # Check parameters (could be in any order based on dict iteration)
+        self.assertEqual(set(params), {"John", 35})
     
-    def test_create_database(self):
-        expected = "CREATE DATABASE company"
-        self.assertEqual(create_database('company'), expected)
-    
-    def test_drop_database(self):
-        expected = "DROP DATABASE company"
-        self.assertEqual(drop_database('company'), expected)
-    
-    def test_use_database(self):
-        expected = "USE company"
-        self.assertEqual(use_database('company'), expected)
+    def test_delete_query(self):
+        # Test delete
+        delete = Delete("employees").where("id = 1")
+        expected = "DELETE FROM employees WHERE id = 1"
+        self.assertEqual(delete.build(), expected)
+        
+        # Test delete with multiple conditions
+        delete = Delete("employees").where("age > 60").where("department = 'HR'")
+        expected = "DELETE FROM employees WHERE age > 60 AND department = 'HR'"
+        self.assertEqual(delete.build(), expected)
 
+class TestTableDefinition(unittest.TestCase):
+    def setUp(self):
+        # Define a simple test table
+        class TestEmployee(Table):
+            __tablename__ = 'test_employees'
+            id = Column(Integer, primary_key=True)
+            name = Column(String, nullable=False)
+            age = Column(Integer)
+            
+        self.TestEmployee = TestEmployee
+        
+    def test_table_definition(self):
+        # Check table attributes
+        self.assertEqual(self.TestEmployee.__tablename__, 'test_employees')
+        self.assertTrue('id' in self.TestEmployee._columns)
+        self.assertTrue('name' in self.TestEmployee._columns)
+        self.assertTrue('age' in self.TestEmployee._columns)
+        
+        # Check column properties
+        id_col = self.TestEmployee._columns['id']
+        self.assertEqual(id_col.type, Integer)
+        self.assertTrue(id_col.primary_key)
+        
+        name_col = self.TestEmployee._columns['name']
+        self.assertEqual(name_col.type, String)
+        self.assertFalse(name_col.nullable)
 
 if __name__ == '__main__':
     unittest.main()

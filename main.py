@@ -1,12 +1,13 @@
-import dbrm
+from dbrm import Engine, transfer_csv
 
 def main():
     # Example usage of the transfer_csv function
-    dbrm.transfer_csv(
-        path='data/sample_data.csv',
-        table_name='test_table',
-        if_exists='replace',
-        chunk_size=1000
+    engine = Engine.from_env()
+    transfer_csv(
+        csv_file="data/sample_data.csv", 
+        table_name="my_table", 
+        engine=engine,
+        if_exists="replace"
     )
     print("CSV file transferred successfully.")
 
